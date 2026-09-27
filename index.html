@@ -14,13 +14,23 @@
     --warn: #8a4b12;
     --bad: #7a2424;
     --ok: #2f5d34;
+    --cream: #f3efe6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Georgia, "Palatino Linotype", Palatino, serif; background: var(--paper); color: var(--ink); line-height: 1.45; }
-  header { background: var(--ink); color: #f3efe6; padding: 18px 22px 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  header { background: var(--ink); color: var(--cream); padding: 18px 22px 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
   header h1 { font-size: 22px; font-weight: 400; letter-spacing: 0.04em; }
   header p { font-size: 13px; opacity: 0.75; margin-top: 4px; font-family: system-ui, sans-serif; }
-  header .tools { display: flex; gap: 8px; }
+  header .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  header .tools button {
+    font: 13px system-ui, sans-serif;
+    padding: 8px 12px;
+    cursor: pointer;
+    background: var(--cream);
+    color: var(--ink);
+    border: 1px solid var(--cream);
+    border-radius: 3px;
+  }
   nav { display: flex; gap: 2px; padding: 0 16px; background: #e7e0d2; border-bottom: 1px solid var(--line); overflow-x: auto; }
   nav button { background: transparent; border: 0; padding: 12px 14px; font: 13px system-ui, sans-serif; color: #5a5348; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; }
   nav button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
@@ -31,7 +41,7 @@
   input, select, textarea, button.ink { font: 14px system-ui, sans-serif; padding: 8px 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 3px; }
   textarea { min-height: 84px; width: 100%; resize: vertical; }
   button.ink { cursor: pointer; }
-  button.ink.solid { background: var(--ink); color: #f3efe6; border-color: var(--ink); }
+  button.ink.solid { background: var(--ink); color: var(--cream); border-color: var(--ink); }
   button.ink.ghost { background: transparent; }
   button.ink.bad { background: var(--bad); color: #fff; border-color: var(--bad); }
   table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); }
@@ -71,8 +81,8 @@
     <p>Keep the association on paper. Violations, vendors, meetings, the monthly packet.</p>
   </div>
   <div class="tools">
-    <button class="ink ghost" onclick="dumpBook()">Take a copy off the machine</button>
-    <button class="ink ghost" onclick="document.getElementById('bringFile').click()">Bring a copy back</button>
+    <button type="button" onclick="dumpBook()">Take a copy off the machine</button>
+    <button type="button" onclick="document.getElementById('bringFile').click()">Bring a copy back</button>
     <input id="bringFile" type="file" accept=".json" hidden onchange="bringBook(event)">
   </div>
 </header>
