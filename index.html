@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notice Book</title>
+<style>
+  :root {
+    --ink: #1c1914;
+    --paper: #f3efe6;
+    --card: #fffdf8;
+    --line: #d4cbb8;
+    --accent: #3d5a3a;
+    --warn: #8a4b12;
+    --bad: #7a2424;
+    --ok: #2f5d34;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, "Palatino Linotype", Palatino, serif; background: var(--paper); color: var(--ink); line-height: 1.45; }
+  header { background: var(--ink); color: #f3efe6; padding: 18px 22px 14px; display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  header h1 { font-size: 22px; font-weight: 400; letter-spacing: 0.04em; }
+  header p { font-size: 13px; opacity: 0.75; margin-top: 4px; font-family: system-ui, sans-serif; }
+  header .tools { display: flex; gap: 8px; }
+  nav { display: flex; gap: 2px; padding: 0 16px; background: #e7e0d2; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  nav button { background: transparent; border: 0; padding: 12px 14px; font: 13px system-ui, sans-serif; color: #5a5348; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; }
+  nav button.on { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  main { max-width: 1080px; margin: 22px auto; padding: 0 16px 40px; }
+  .desk { display: none; }
+  .desk.on { display: block; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+  input, select, textarea, button.ink { font: 14px system-ui, sans-serif; padding: 8px 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 3px; }
+  textarea { min-height: 84px; width: 100%; resize: vertical; }
+  button.ink { cursor: pointer; }
+  button.ink.solid { background: var(--ink); color: #f3efe6; border-color: var(--ink); }
+  button.ink.ghost { background: transparent; }
+  button.ink.bad { background: var(--bad); color: #fff; border-color: var(--bad); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); }
+  th { text-align: left; font: 11px system-ui, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6358; padding: 9px 10px; background: #efe8da; border-bottom: 1px solid var(--line); }
+  td { padding: 9px 10px; border-top: 1px solid #eee6d6; font-size: 14px; vertical-align: top; }
+  .tag { font: 600 11px system-ui, sans-serif; padding: 2px 7px; border-radius: 999px; display: inline-block; }
+  .tag.open { background: #f3d7b0; color: var(--warn); }
+  .tag.notice { background: #d5e2f2; color: #1e3a5f; }
+  .tag.cured { background: #d3e8d4; color: var(--ok); }
+  .tag.escalated { background: #f0cfcf; color: var(--bad); }
+  .quiet { text-align: center; padding: 36px 10px; color: #8a8276; font-style: italic; }
+  .sheet { background: var(--card); border: 1px solid var(--line); padding: 16px; margin-bottom: 14px; }
+  .nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .nums div { text-align: center; padding: 12px 6px; }
+  .nums strong { display: block; font-size: 28px; font-weight: 400; }
+  .nums span { font: 11px system-ui, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6358; }
+  .block { margin: 18px 0; }
+  .block h3 { font-size: 15px; font-weight: 400; border-bottom: 1px solid var(--ink); padding-bottom: 4px; margin-bottom: 8px; }
+  .block ul { padding-left: 18px; }
+  .block li { margin: 4px 0; }
+  .fine { font: 12px system-ui, sans-serif; color: #8a8276; margin-top: 16px; }
+  .veil { display: none; position: fixed; inset: 0; background: rgba(28,25,20,0.45); align-items: center; justify-content: center; z-index: 20; padding: 16px; }
+  .veil.on { display: flex; }
+  .card-form { background: var(--card); width: min(540px, 100%); max-height: 90vh; overflow: auto; padding: 20px; border: 1px solid var(--line); }
+  .card-form h2 { font-weight: 400; font-size: 20px; margin-bottom: 14px; }
+  .card-form label { display: block; font: 12px system-ui, sans-serif; color: #6b6358; margin: 8px 0 4px; }
+  .card-form input, .card-form select, .card-form textarea { width: 100%; }
+  .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  @media print { nav, .bar, header .tools, .veil { display: none !important; } header { background: #fff; color: #000; border-bottom: 1px solid #000; } body { background: #fff; } }
+  @media (max-width: 700px) { .nums { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Notice Book</h1>
+    <p>Keep the association on paper. Violations, vendors, meetings, the monthly packet.</p>
+  </div>
+  <div class="tools">
+    <button class="ink ghost" onclick="dumpBook()">Take a copy off the machine</button>
+    <button class="ink ghost" onclick="document.getElementById('bringFile').click()">Bring a copy back</button>
+    <input id="bringFile" type="file" accept=".json" hidden onchange="bringBook(event)">
+  </div>
+</header>
+<nav>
+  <button class="on" onclick="flipDesk('notices', this)">Notices</button>
+  <button onclick="flipDesk('papers', this)">Papers</button>
+  <button onclick="flipDesk('sittings', this)">Sittings</button>
+  <button onclick="flipDesk('yard', this)">Yard help</button>
+  <button onclick="flipDesk('packet', this)">Board packet</button>
+</nav>
+<main>
+  <section id="notices" class="desk on">
+    <div class="bar">
+      <select id="noticeFilter" onchange="drawNotices()">
+        <option value="all">Everything on the books</option>
+        <option value="open">Still open</option>
+        <option value="notice">Letter went out</option>
+        <option value="cured">Cured</option>
+        <option value="escalated">Pushed upstairs</option>
+      </select>
+      <button class="ink solid" onclick="openSlip('notice')">Log a notice</button>
+    </div>
+    <table>
+      <thead><tr><th>When</th><th>Association</th><th>Unit</th><th>What happened</th><th>Where it sits</th><th></th></tr></thead>
+      <tbody id="noticeRows"></tbody>
+    </table>
+    <div class="quiet" id="noticeQuiet">Nothing on the books yet.</div>
+  </section>
+  <section id="papers" class="desk">
+    <div class="bar">
+      <select id="paperFilter" onchange="drawPapers()">
+        <option value="all">All papers</option>
+        <option value="governing">Governing</option>
+        <option value="minutes">Minutes</option>
+        <option value="contract">Contracts</option>
+        <option value="other">Other</option>
+      </select>
+      <button class="ink solid" onclick="openSlip('paper')">File a paper</button>
+    </div>
+    <table>
+      <thead><tr><th>Title</th><th>Association</th><th>Kind</th><th>Dated</th><th>Scratch</th><th></th></tr></thead>
+      <tbody id="paperRows"></tbody>
+    </table>
+    <div class="quiet" id="paperQuiet">The drawer is empty.</div>
+  </section>
+  <section id="sittings" class="desk">
+    <div class="bar">
+      <button class="ink solid" onclick="openSlip('sitting')">Put a sitting on the calendar</button>
+    </div>
+    <table>
+      <thead><tr><th>When</th><th>Association</th><th>Kind</th><th>Agenda</th><th>Carry-overs</th><th></th></tr></thead>
+      <tbody id="sittingRows"></tbody>
+    </table>
+    <div class="quiet" id="sittingQuiet">No sittings on the wall.</div>
+  </section>
+  <section id="yard" class="desk">
+    <div class="bar">
+      <button class="ink solid" onclick="openSlip('crew')">Add a crew</button>
+    </div>
+    <table>
+      <thead><tr><th>Who</th><th>What they do</th><th>Association</th><th>Contract dies</th><th>Insurance dies</th><th></th></tr></thead>
+      <tbody id="crewRows"></tbody>
+    </table>
+    <div class="quiet" id="crewQuiet">No crews on file.</div>
+  </section>
+  <section id="packet" class="desk">
+    <div class="bar">
+      <select id="packetAssoc" onchange="drawPacket()"></select>
+      <button class="ink solid" onclick="window.print()">Print the packet</button>
+    </div>
+    <div class="sheet" id="packetNums"></div>
+    <div id="packetBody"></div>
+    <p class="fine">Lives in this browser. Take a copy off the machine if you care about the data.</p>
+  </section>
+</main>
+<div class="veil" id="veil" onclick="if(event.target===this)shutSlip()">
+  <div class="card-form">
+    <h2 id="slipTitle"></h2>
+    <div id="slipBody"></div>
+    <div class="actions">
+      <button class="ink ghost" onclick="shutSlip()">Leave it</button>
+      <button class="ink solid" onclick="keepSlip()">Put it on the books</button>
+    </div>
+  </div>
+</div>
+<script>
+const KEY = "notice_book_v1";
+const STEPS = ["open", "notice", "cured", "escalated"];
+let BOOK = { notices: [], papers: [], sittings: [], crews: [] };
+let slipKind = null;
+
+function loadBook() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) BOOK = Object.assign(BOOK, JSON.parse(raw));
+  } catch (err) {}
+}
+function keepBook() { localStorage.setItem(KEY, JSON.stringify(BOOK)); }
+function dumpBook() {
+  const blob = new Blob([JSON.stringify(BOOK, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "notice_book_" + today() + ".json";
+  a.click();
+}
+function bringBook(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const incoming = JSON.parse(reader.result);
+      if (confirm("This replaces whatever is on the machine right now.")) {
+        BOOK = incoming; keepBook(); redraw();
+      }
+    } catch (err) { alert("That file is not a notice book."); }
+  };
+  reader.readAsText(file);
+  ev.target.value = "";
+}
+function flipDesk(id, btn) {
+  document.querySelectorAll(".desk").forEach(el => el.classList.remove("on"));
+  document.querySelectorAll("nav button").forEach(el => el.classList.remove("on"));
+  document.getElementById(id).classList.add("on");
+  if (btn) btn.classList.add("on");
+  if (id === "packet") drawPacket();
+}
+function drawNotices() {
+  const want = document.getElementById("noticeFilter").value;
+  const rows = BOOK.notices.filter(n => want === "all" || n.status === want);
+  const box = document.getElementById("noticeRows");
+  box.innerHTML = "";
+  rows.forEach(n => {
+    const i = BOOK.notices.indexOf(n);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${n.when}</td><td>${safe(n.assoc)}</td><td>${safe(n.unit)}</td><td>${safe(n.what)}</td>
+      <td><span class="tag ${n.status}">${labelStatus(n.status)}</span></td>
+      <td><button class="ink ghost" onclick="nudgeNotice(${i})">Move it</button>
+          <button class="ink bad" onclick="dropRow('notices',${i})">Strike</button></td>`;
+    box.appendChild(tr);
+  });
+  document.getElementById("noticeQuiet").style.display = rows.length ? "none" : "block";
+}
+function labelStatus(s) {
+  return ({ open: "open", notice: "letter out", cured: "cured", escalated: "upstairs" })[s] || s;
+}
+function nudgeNotice(i) {
+  const now = STEPS.indexOf(BOOK.notices[i].status);
+  BOOK.notices[i].status = STEPS[(now + 1) % STEPS.length];
+  keepBook(); drawNotices();
+}
+function drawPapers() {
+  const want = document.getElementById("paperFilter").value;
+  const rows = BOOK.papers.filter(p => want === "all" || p.kind === want);
+  const box = document.getElementById("paperRows");
+  box.innerHTML = "";
+  rows.forEach(p => {
+    const i = BOOK.papers.indexOf(p);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${safe(p.title)}</td><td>${safe(p.assoc)}</td><td>${safe(p.kind)}</td><td>${p.when}</td>
+      <td>${safe(p.scratch)}</td>
+      <td><button class="ink bad" onclick="dropRow('papers',${i})">Strike</button></td>`;
+    box.appendChild(tr);
+  });
+  document.getElementById("paperQuiet").style.display = rows.length ? "none" : "block";
+}
+function drawSittings() {
+  const box = document.getElementById("sittingRows");
+  box.innerHTML = "";
+  const rows = [...BOOK.sittings].sort((a, b) => a.when.localeCompare(b.when));
+  rows.forEach(s => {
+    const i = BOOK.sittings.indexOf(s);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${s.when}</td><td>${safe(s.assoc)}</td><td>${safe(s.kind)}</td>
+      <td>${safe(s.agenda)}</td><td>${safe(s.carry)}</td>
+      <td><button class="ink bad" onclick="dropRow('sittings',${i})">Strike</button></td>`;
+    box.appendChild(tr);
+  });
+  document.getElementById("sittingQuiet").style.display = rows.length ? "none" : "block";
+}
+function drawCrews() {
+  const box = document.getElementById("crewRows");
+  box.innerHTML = "";
+  BOOK.crews.forEach((c, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${safe(c.who)}</td><td>${safe(c.job)}</td><td>${safe(c.assoc)}</td>
+      <td>${c.contractDies || "—"}</td><td>${c.insDies || "—"}</td>
+      <td><button class="ink bad" onclick="dropRow('crews',${i})">Strike</button></td>`;
+    box.appendChild(tr);
+  });
+  document.getElementById("crewQuiet").style.display = BOOK.crews.length ? "none" : "block";
+}
+function drawPacket() {
+  const sel = document.getElementById("packetAssoc");
+  const held = sel.value || "all";
+  const names = [...new Set([
+    ...BOOK.notices.map(x => x.assoc), ...BOOK.papers.map(x => x.assoc),
+    ...BOOK.sittings.map(x => x.assoc), ...BOOK.crews.map(x => x.assoc)
+  ].filter(Boolean))].sort();
+  sel.innerHTML = '<option value="all">Every association</option>' + names.map(n => `<option value="${safe(n)}">${safe(n)}</option>`).join("");
+  sel.value = names.includes(held) ? held : "all";
+  const pick = sel.value;
+  const mine = x => pick === "all" || x.assoc === pick;
+  const open = BOOK.notices.filter(n => mine(n) && n.status !== "cured");
+  const cured = BOOK.notices.filter(n => mine(n) && n.status === "cured");
+  const soon = BOOK.sittings.filter(s => mine(s) && s.when >= today()).sort((a, b) => a.when.localeCompare(b.when));
+  const dying = BOOK.crews.filter(c => mine(c) && c.insDies && c.insDies <= plusDays(today(), 90));
+  document.getElementById("packetNums").innerHTML = `<div class="nums">
+    <div><strong>${open.length}</strong><span>Still open</span></div>
+    <div><strong>${cured.length}</strong><span>Cured</span></div>
+    <div><strong>${soon.length}</strong><span>Sittings ahead</span></div>
+  </div>`;
+  let html = "";
+  html += bit("Open notices", open.length ? open.map(n => `<li>${n.when} — ${safe(n.assoc)} unit ${safe(n.unit)}: ${safe(n.what)} <span class="tag ${n.status}">${labelStatus(n.status)}</span></li>`).join("") : "<li>Quiet.</li>");
+  html += bit("Sittings ahead", soon.length ? soon.map(s => `<li>${s.when} — ${safe(s.assoc)} (${safe(s.kind)})</li>`).join("") : "<li>None on the wall.</li>");
+  html += bit("Insurance dying in 90 days", dying.length ? dying.map(c => `<li>${safe(c.who)} — ${safe(c.job)} — dies ${c.insDies}</li>`).join("") : "<li>None that close.</li>");
+  const papers = BOOK.papers.filter(mine).slice(-10);
+  html += bit("Papers recently filed", papers.length ? papers.map(p => `<li>${p.when} — ${safe(p.title)} (${safe(p.kind)})</li>`).join("") : "<li>Drawer is thin.</li>");
+  document.getElementById("packetBody").innerHTML = html;
+}
+function bit(title, lis) { return `<div class="block"><h3>${title}</h3><ul>${lis}</ul></div>`; }
+function openSlip(kind) {
+  slipKind = kind;
+  const titles = { notice: "Log a notice", paper: "File a paper", sitting: "Put a sitting on the calendar", crew: "Add a crew" };
+  document.getElementById("slipTitle").textContent = titles[kind];
+  const known = [...new Set([...BOOK.notices, ...BOOK.papers, ...BOOK.sittings, ...BOOK.crews].map(x => x.assoc).filter(Boolean))];
+  const list = known.map(n => `<option value="${safe(n)}">`).join("");
+  let body = "";
+  if (kind === "notice") {
+    body = lab("Association", `<input id="fAssoc" list="knownAssoc" placeholder="Type it or pick one">`)
+      + lab("Unit", `<input id="fUnit" placeholder="204">`)
+      + lab("When", `<input id="fWhen" type="date" value="${today()}">`)
+      + lab("What happened", `<textarea id="fWhat" placeholder="The thing that is not supposed to be happening"></textarea>`)
+      + lab("Where it sits", `<select id="fStatus">${STEPS.map(s => `<option value="${s}">${labelStatus(s)}</option>`).join("")}</select>`);
+  } else if (kind === "paper") {
+    body = lab("Title", `<input id="fTitle" placeholder="2026 budget">`)
+      + lab("Association", `<input id="fAssoc" list="knownAssoc">`)
+      + lab("Kind", `<select id="fKind"><option>governing</option><option>minutes</option><option>contract</option><option>other</option></select>`)
+      + lab("Dated", `<input id="fWhen" type="date" value="${today()}">`)
+      + lab("Scratch", `<textarea id="fScratch"></textarea>`);
+  } else if (kind === "sitting") {
+    body = lab("Association", `<input id="fAssoc" list="knownAssoc">`)
+      + lab("When", `<input id="fWhen" type="date" value="${today()}">`)
+      + lab("Kind", `<select id="fKind"><option>Board</option><option>Annual</option><option>Committee</option><option>Other</option></select>`)
+      + lab("Agenda", `<textarea id="fAgenda" placeholder="One line per item"></textarea>`)
+      + lab("Carry-overs", `<textarea id="fCarry"></textarea>`);
+  } else if (kind === "crew") {
+    body = lab("Who", `<input id="fWho">`)
+      + lab("What they do", `<input id="fJob" placeholder="Landscaping">`)
+      + lab("Association", `<input id="fAssoc" list="knownAssoc">`)
+      + lab("Contract dies", `<input id="fContract" type="date">`)
+      + lab("Insurance dies", `<input id="fIns" type="date">`);
+  }
+  body += `<datalist id="knownAssoc">${list}</datalist>`;
+  document.getElementById("slipBody").innerHTML = body;
+  document.getElementById("veil").classList.add("on");
+}
+function lab(label, control) { return `<label>${label}</label>${control}`; }
+function shutSlip() { document.getElementById("veil").classList.remove("on"); slipKind = null; }
+function grab(id) { const el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function keepSlip() {
+  if (slipKind === "notice") BOOK.notices.push({ when: grab("fWhen"), assoc: grab("fAssoc"), unit: grab("fUnit"), what: grab("fWhat"), status: grab("fStatus") });
+  else if (slipKind === "paper") BOOK.papers.push({ title: grab("fTitle"), assoc: grab("fAssoc"), kind: grab("fKind"), when: grab("fWhen"), scratch: grab("fScratch") });
+  else if (slipKind === "sitting") BOOK.sittings.push({ when: grab("fWhen"), assoc: grab("fAssoc"), kind: grab("fKind"), agenda: grab("fAgenda"), carry: grab("fCarry") });
+  else if (slipKind === "crew") BOOK.crews.push({ who: grab("fWho"), job: grab("fJob"), assoc: grab("fAssoc"), contractDies: grab("fContract"), insDies: grab("fIns") });
+  keepBook(); shutSlip(); redraw();
+}
+function dropRow(pile, i) {
+  if (!confirm("Strike it from the book?")) return;
+  BOOK[pile].splice(i, 1); keepBook(); redraw();
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+function plusDays(day, n) { const d = new Date(day + "T00:00:00"); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+function safe(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function redraw() { drawNotices(); drawPapers(); drawSittings(); drawCrews(); }
+loadBook();
+redraw();
+</script>
+</body>
+</html>
